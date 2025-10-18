@@ -6,8 +6,8 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config) => {
-        // Buscar token nos cookies
-        if (typeof document !== 'undefined') {
+        // Buscar token nos cookies apenas no cliente
+        if (typeof window !== 'undefined' && typeof document !== 'undefined') {
             const tokenMatch = document.cookie.match(/token=([^;]+)/);
             if (tokenMatch) {
                 config.headers.Authorization = `Bearer ${tokenMatch[1]}`;
@@ -24,10 +24,12 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
-            // Remover cookie
-            document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-            localStorage.removeItem("user");
-            window.location.href = "/login";
+            // Remover cookie apenas no cliente
+            if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+                document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                localStorage.removeItem("user");
+                window.location.href = "/login";
+            }
         }
         return Promise.reject(error);
     }
